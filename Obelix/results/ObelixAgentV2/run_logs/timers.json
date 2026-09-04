@@ -1,0 +1,42 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1788563136",
+        "python_version": "3.9.25 (main, Nov  3 2025, 22:44:01) [MSC v.1929 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\behlu\\anaconda3\\envs\\MlAgentsLabo\\Scripts\\mlagents-learn config/ObelixAgent.yaml --run-id=ObelixAgentV2",
+        "mlagents_version": "0.30.0",
+        "mlagents_envs_version": "0.30.0",
+        "communication_protocol_version": "1.5.0",
+        "pytorch_version": "1.7.1+cu110",
+        "numpy_version": "1.21.2",
+        "end_time_seconds": "1788563205"
+    },
+    "total": 69.0335195,
+    "count": 1,
+    "self": 0.012968900000004169,
+    "children": {
+        "run_training.setup": {
+            "total": 0.07640200000000008,
+            "count": 1,
+            "self": 0.07640200000000008
+        },
+        "TrainerController.start_learning": {
+            "total": 68.94414859999999,
+            "count": 1,
+            "self": 9.219999999743322e-05,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 68.94403879999999,
+                    "count": 1,
+                    "self": 68.94403879999999
+                },
+                "TrainerController._save_models": {
+                    "total": 1.760000000672335e-05,
+                    "count": 1,
+                    "self": 1.760000000672335e-05
+                }
+            }
+        }
+    }
+}

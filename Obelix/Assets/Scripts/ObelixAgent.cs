@@ -66,13 +66,55 @@ public class ObelixAgent : Agent
             destinations.Add(newDestination);
         }
 
+        hasMenhir = false;
 
     }
     public override void CollectObservations(VectorSensor sensor)
     {
-        // Agent posities
-        sensor.AddObservation(this.transform.localPosition);
         sensor.AddObservation(transform.forward);
+
+        sensor.AddObservation(hasMenhir ? 1.0f : 0.0f);
+
+        Vector3 nearestTargetPos = GetNearestTargetPosition();
+        sensor.AddObservation(nearestTargetPos - this.transform.localPosition);
+    }
+
+    Vector3 GetNearestTargetPosition()
+    {
+        float minDistance = Mathf.Infinity;
+        Vector3 nearestPos = this.transform.localPosition;
+
+        if (!hasMenhir)
+        {
+            foreach (GameObject m in menhirs)
+            {
+                if (m != null)
+                {
+                    float dist = Vector3.Distance(this.transform.localPosition, m.transform.localPosition);
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                        nearestPos = m.transform.localPosition;
+                    }
+                }
+            }
+        }
+        else
+        {
+            foreach (GameObject d in destinations)
+            {
+                if (d != null)
+                {
+                    float dist = Vector3.Distance(this.transform.localPosition, d.transform.localPosition);
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                        nearestPos = d.transform.localPosition;
+                    }
+                }
+            }
+        }
+        return nearestPos;
     }
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
@@ -98,7 +140,7 @@ public class ObelixAgent : Agent
         {
             Debug.Log("Menhir geraakt zonder een menhir");
             hasMenhir = true;
-            AddReward(0.1f);
+            AddReward(0.5f);
 
             menhirs.Remove(collision.gameObject);
             Destroy(collision.gameObject);
@@ -108,13 +150,14 @@ public class ObelixAgent : Agent
         {
             Debug.Log("Destination geraakt met een menhir");
             hasMenhir = false;
-            AddReward(1f);
+            AddReward(1.5f);
            
             destinations.Remove(collision.gameObject);
             Destroy(collision.gameObject);
 
             if (destinations.Count == 0)
             {
+                AddReward(2f);
                 EndEpisode();
             }
         }
