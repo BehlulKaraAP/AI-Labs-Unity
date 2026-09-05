@@ -16,7 +16,9 @@ public class JumperAgent : Agent
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        this.MaxStep = 2500;
     }
+
     public override void OnEpisodeBegin()
     {
         if (transform.localPosition.y < 0 || transform.localPosition.z < -2f)
@@ -31,11 +33,6 @@ public class JumperAgent : Agent
             spawner.ResetEpisodeSpawner();
         }
 
-        GameObject[] activeObstacles = GameObject.FindGameObjectsWithTag("Obstacle");
-        foreach (GameObject obs in activeObstacles)
-        {
-            Destroy(obs);
-        }
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -46,24 +43,25 @@ public class JumperAgent : Agent
 
         float closestDistance = 20f;
 
-        GameObject[] activeObstacles = GameObject.FindGameObjectsWithTag("Obstacle");
-
-        foreach (GameObject obs in activeObstacles)
-        {
-            float distance = obs.transform.position.z - transform.position.z;
-            if (distance > -1f && distance < closestDistance)
-            {
-                closestDistance = distance;
-            }
-        }
-        sensor.AddObservation(closestDistance);
-
         if (spawner != null)
         {
+            foreach (Obstacle obs in spawner.activeObstacles)
+            {
+                if (obs != null)
+                {
+                    float distance = obs.transform.position.z - transform.position.z;
+                    if (distance > -1f && distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                    }
+                }
+            }
+            sensor.AddObservation(closestDistance);
             sensor.AddObservation(spawner.currentObstacleSpeed);
         }
         else
         {
+            sensor.AddObservation(closestDistance);
             sensor.AddObservation(5f);
         }
     }
@@ -81,9 +79,9 @@ public class JumperAgent : Agent
         AddReward(0.01f);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (collision.gameObject.CompareTag("Obstacle"))
+        if (other.GetComponent<Obstacle>() != null)
         {
             Debug.Log("Obstakel geraakt");
             AddReward(-1.0f);

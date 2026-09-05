@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ObstacleSpawner : MonoBehaviour
@@ -6,6 +7,7 @@ public class ObstacleSpawner : MonoBehaviour
     public float spawnInterval = 2.0f;
     private float timer;
     public float currentObstacleSpeed = 5f;
+    public List<Obstacle> activeObstacles = new List<Obstacle>();
 
     // Update is called once per frame
     void Update()
@@ -22,6 +24,15 @@ public class ObstacleSpawner : MonoBehaviour
     {
         currentObstacleSpeed = Random.Range(4f, 10f);
         timer = 0f;
+
+        for (int i = activeObstacles.Count - 1; i >= 0; i--)
+        {
+            if (activeObstacles[i] != null)
+            {
+                Destroy(activeObstacles[i].gameObject);
+            }
+        }
+        activeObstacles.Clear();
     }
 
     private void SpawnObstacle()
@@ -31,6 +42,15 @@ public class ObstacleSpawner : MonoBehaviour
         if (obstacleScript != null)
         {
             obstacleScript.speed = currentObstacleSpeed;
+            obstacleScript.spawner = this;
+            activeObstacles.Add(obstacleScript);
+        }
+    }
+    public void RemoveObstacle(Obstacle obs)
+    {
+        if (activeObstacles.Contains(obs))
+        {
+            activeObstacles.Remove(obs);
         }
     }
 }
