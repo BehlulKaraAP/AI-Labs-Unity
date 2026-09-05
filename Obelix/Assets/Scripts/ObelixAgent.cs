@@ -48,23 +48,47 @@ public class ObelixAgent : Agent
             this.transform.localRotation = Quaternion.identity;
         }
 
-        for (int i = 0; i < amount; i++) 
-        {
-            float x = Random.Range(minX, maxX); 
-            float z = Random.Range(minZ, maxZ); 
-            Vector3 spawnPosition = new Vector3(x, 0.5f, z); 
-            GameObject newMenhir = Instantiate(menhirPrefab, spawnPosition, Quaternion.identity);
-            menhirs.Add(newMenhir);
-        } 
+        Vector3 areaCenter = this.transform.position;
 
         for (int i = 0; i < amount; i++)
         {
-            float x = Random.Range(minX, maxX);
-            float z = Random.Range(minZ, maxZ);
+            // Genereer een willekeurige offset rondom HET EIGEN MIDDEN van deze area
+            float x = Random.Range(areaCenter.x - 5f, areaCenter.x + 5f);
+            float z = Random.Range(areaCenter.z - 5f, areaCenter.z + 5f);
+
+            Vector3 spawnPosition = new Vector3(x, 0.5f, z);
+            GameObject newMenhir = Instantiate(menhirPrefab, spawnPosition, Quaternion.identity);
+            menhirs.Add(newMenhir);
+        }
+
+        for (int i = 0; i < amount; i++)
+        {
+            // Genereer een willekeurige offset rondom HET EIGEN MIDDEN van deze area
+            float x = Random.Range(areaCenter.x - 5f, areaCenter.x + 5f);
+            float z = Random.Range(areaCenter.z - 5f, areaCenter.z + 5f);
+
             Vector3 spawnPosition = new Vector3(x, 0.5f, z);
             GameObject newDestination = Instantiate(destinationPrefab, spawnPosition, Quaternion.identity);
             destinations.Add(newDestination);
         }
+
+        //for (int i = 0; i < amount; i++) 
+        //{
+        //    float x = Random.Range(minX, maxX); 
+        //    float z = Random.Range(minZ, maxZ); 
+        //    Vector3 spawnPosition = new Vector3(x, 0.5f, z); 
+        //    GameObject newMenhir = Instantiate(menhirPrefab, spawnPosition, Quaternion.identity);
+        //    menhirs.Add(newMenhir);
+        //} 
+
+        //for (int i = 0; i < amount; i++)
+        //{
+        //    float x = Random.Range(minX, maxX);
+        //    float z = Random.Range(minZ, maxZ);
+        //    Vector3 spawnPosition = new Vector3(x, 0.5f, z);
+        //    GameObject newDestination = Instantiate(destinationPrefab, spawnPosition, Quaternion.identity);
+        //    destinations.Add(newDestination);
+        //}
 
         hasMenhir = false;
 
@@ -125,7 +149,7 @@ public class ObelixAgent : Agent
 
         transform.Rotate(0.0f, rotationMultiplier * actionBuffers.ContinuousActions[1], 0.0f);
         
-        AddReward(-0.001f);
+        AddReward(-0.002f);
 
         if (transform.localPosition.y < 0)
         {
