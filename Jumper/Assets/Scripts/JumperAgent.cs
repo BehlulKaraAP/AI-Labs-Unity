@@ -41,27 +41,12 @@ public class JumperAgent : Agent
 
         sensor.AddObservation(rb.linearVelocity.y);
 
-        float closestDistance = 20f;
-
         if (spawner != null)
         {
-            foreach (Obstacle obs in spawner.activeObstacles)
-            {
-                if (obs != null)
-                {
-                    float distance = obs.transform.position.z - transform.position.z;
-                    if (distance > -1f && distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                    }
-                }
-            }
-            sensor.AddObservation(closestDistance);
             sensor.AddObservation(spawner.currentObstacleSpeed);
         }
         else
         {
-            sensor.AddObservation(closestDistance);
             sensor.AddObservation(5f);
         }
     }
