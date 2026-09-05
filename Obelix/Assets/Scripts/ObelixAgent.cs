@@ -29,7 +29,7 @@ public class ObelixAgent : Agent
 
     private void Start()
     {
-        this.MaxStep = 2000;        
+        this.MaxStep = 10000;        
     }
     public override void OnEpisodeBegin()
     {
