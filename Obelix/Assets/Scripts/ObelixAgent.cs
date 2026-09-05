@@ -26,6 +26,11 @@ public class ObelixAgent : Agent
     public float rotationMultiplier = 5f;
 
     private bool hasMenhir = false;
+
+    private void Start()
+    {
+        this.MaxStep = 2000;        
+    }
     public override void OnEpisodeBegin()
     {
         foreach (GameObject menhir in menhirs)
@@ -149,7 +154,7 @@ public class ObelixAgent : Agent
 
         transform.Rotate(0.0f, rotationMultiplier * actionBuffers.ContinuousActions[1], 0.0f);
         
-        AddReward(-0.001f);
+        AddReward(-0.005f);
 
         if (transform.localPosition.y < 0)
         {
