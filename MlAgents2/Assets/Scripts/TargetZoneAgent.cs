@@ -11,7 +11,7 @@ public class TargetZoneAgent : Agent
     private bool hasFoundTarget = false;
 
     public Transform targetTransform; 
-    public Transform zoneTransform;   
+    public Transform zoneTransform;
 
     public override void OnEpisodeBegin()
     {
