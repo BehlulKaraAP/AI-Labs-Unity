@@ -61,7 +61,7 @@ public class JumperAgent : Agent
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
 
-        AddReward(0.01f);
+        AddReward(0.001f);
     }
 
     private void OnTriggerEnter(Collider other)
