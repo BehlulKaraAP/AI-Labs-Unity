@@ -461,3 +461,128 @@ De agent moet nu zelfstandig:
 6. opnieuw wachten op het volgende obstakel.
 
 Hiermee is de Jumper Agent klaar.
+
+
+# Target en Zone Agent
+
+In deze tutorial wordt uitgelegd hoe je in Unity een agent eerst een target laat aanraken en daarna naar een groene zone laat gaan.
+
+## 1. Scene opzetten
+
+Maak in je Unity-scene de volgende objecten aan:
+
+* **Agent**
+* **Plane**
+* **Target**
+* **Zone**
+
+Plaats de agent op de plane. De target wordt op de plane geplaatst. Naast de eerste plane plaats je een tweede plane die tegen de eerste plane aanligt. Deze tweede plane wordt gebruikt als de zone.
+
+Geef de zone een ander materiaal, bijvoorbeeld een groen materiaal, zodat deze duidelijk herkenbaar is.
+
+### Tags
+
+Maak de volgende tags aan:
+
+* `Target`
+* `Zone`
+
+Geef het Target-object de tag `Target` en de zone de tag `Zone`.
+
+## 2. Agent instellen
+
+Selecteer de Agent en voeg de volgende componenten toe:
+
+* `TargetZoneAgent` script
+* `Decision Requester`
+* `Behavior Parameters`
+* `Ray Perception Sensor 3D`
+
+Bij de `Ray Perception Sensor` worden de raycasts gebruikt om informatie uit de omgeving te verzamelen.
+
+Stel de sensor als volgt in:
+
+* **Max Ray Degrees**: `90`
+* **End Vertical Offset**: `-1.3`
+
+De negatieve `End Vertical Offset` zorgt ervoor dat de rays ook richting de grond kunnen kijken. Dit is belangrijk omdat de zone een platte plane is.
+
+## 3. TargetZoneAgent script
+
+Maak een nieuw C#-script aan met de naam `TargetZoneAgent` en koppel dit script aan de Agent.
+
+### OnEpisodeBegin
+
+In de `OnEpisodeBegin` methode wordt de omgeving opnieuw ingesteld wanneer een episode begint.
+
+De target krijgt hierbij een willekeurige spawnpositie op de plane. Hierdoor staat de target tijdens iedere episode op een andere plek.
+
+### CollectObservations
+
+In `CollectObservations` krijgt de agent alleen informatie over de vraag of de target al gevonden is.
+
+Dit wordt opgeslagen als een `true` of `false` waarde:
+
+* `false` = de target is nog niet gevonden.
+* `true` = de target is gevonden.
+
+De agent kan hierdoor leren dat zijn gedrag moet veranderen nadat hij de target heeft geraakt.
+
+### OnActionReceived
+
+In `OnActionReceived` wordt bepaald hoe de agent kan bewegen.
+
+De agent krijgt acties voor:
+
+* Vooruit bewegen
+* Achteruit bewegen
+* Naar links draaien
+* Naar rechts draaien
+
+Daarnaast krijgt de agent een kleine negatieve reward van -0.001 wanneer hij een actie uitvoert. Hierdoor wordt de agent licht gestraft wanneer hij onnodig lang niets bereikt.
+
+Wanneer de agent van de map valt, krijgt hij een reward van -1 en wordt de episode beëindigd.
+
+## 4. Target aanraken
+
+Gebruik de `OnCollisionEnter` methode om te controleren of de agent de target raakt.
+
+Wanneer de agent de target raakt:
+
+1. Krijgt de agent **+0.5 reward**.
+2. Wordt geregistreerd dat de target is gevonden.
+3. Wordt de target uitgezet, zodat de agent daarna verder kan met de tweede stap.
+
+De agent moet hierdoor eerst leren om de target te vinden voordat hij naar de zone moet gaan.
+
+## 5. Zone bereiken
+
+Nadat de target is geraakt, moet de agent naar de groene zone bewegen.
+
+Wanneer de agent daarna de zone raakt, wordt de episode beëindigd. Hierbij kan een positieve reward worden gegeven voor het succesvol bereiken van de zone.
+
+Het belangrijkste is dat de agent de zone pas als einddoel mag gebruiken nadat de target eerst is geraakt.
+
+## 6. Heuristic
+
+Optioneel kan je een `Heuristic` methode toevoegen.
+
+Hiermee kun je de agent handmatig besturen voordat je gaat trainen. Dit is handig om te controleren of de bewegingen, collision detection en het bereiken van de zone correct werken.
+
+## 7. Config toevoegen
+
+Voeg aan het project de yaml config bestand toe met de juiste parameters en gebruik dezelfde naam die je in je behaviour parameters hebt ingegeven.
+
+## 8. Trainen
+
+Wanneer de scene en het script klaar zijn, kun je de agent trainen.
+
+Tijdens het trainen leert de agent:
+
+1. De target te vinden.
+2. De target aan te raken.
+3. Daarna de groene zone te vinden.
+4. De zone te bereiken zonder van de map te vallen.
+
+Na het trainen kun je het model testen door de agent zelfstandig te laten bewegen.
+
