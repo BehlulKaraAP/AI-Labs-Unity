@@ -195,3 +195,269 @@ Na een succesvolle training zou de agent zelfstandig de volgende taak moeten kun
 **menhir zoeken → menhir oppakken → bestemming zoeken → menhir afleveren → volgende menhir zoeken.**
 
 Het uiteindelijke gedrag is afhankelijk van de gebruikte trainingsinstellingen, de rewardstructuur en de kwaliteit van het getrainde model.
+
+
+
+# Jumper Agent
+
+In dit project wordt een Unity ML-Agent getraind om obstakels te ontwijken door eroverheen te springen. De agent ziet de obstakels aankomen en probeert op het juiste moment eroverheen te springen. Dit proces wordt herhaald totdat de agent wordt geraakt door een obstakel.
+
+## 1. Benodigdheden
+
+Voor dit project heb je nodig:
+
+* Unity
+* Unity ML-Agents
+* Python
+* Een Unity-project met een scene waarin de agent en obstakels kunnen worden geplaatst.
+
+## 2. De agent maken
+
+Maak in je Unity-scene een GameObject voor de agent. Geef de agent een `Rigidbody`.
+
+Stel bij de `Rigidbody` de volgende constraints in:
+
+* Freeze Position X
+* Freeze Position Z
+  
+* Freeze Rotation X
+* Freeze Rotation Y
+* Freeze Rotation Z
+
+Hierdoor kan de agent alleen verticaal bewegen wanneer hij springt en blijft hij op zijn plaats staan.
+
+Voeg daarnaast de volgende componenten toe aan de agent:
+
+* `Decision Requester`
+* `Behavior Parameters`
+* `Ray Perception Sensor 3D`
+* het eigen `JumperAgent`-script
+
+### Ray Perception Sensor
+
+Voeg een `Ray Perception Sensor 3D` toe aan de agent. Stel de `Ray Length` lang genoeg in zodat de agent de obstakels op tijd kan detecteren.
+
+Omdat de obstakels alleen van voren komen, is het niet nodig om een groot aantal rays of een grote `Ray Degrees` te gebruiken.
+
+Zet `Stacked Raycasts` bijvoorbeeld op **2 of 3**. Hierdoor krijgt de agent informatie uit meerdere opeenvolgende observaties. Hierdoor kan de agent bijvoorbeeld tijdens een sprong nog informatie uit een vorige observatie gebruiken.
+
+Voeg bij `Detectable Tags` de tag:
+
+`Obstacle`
+
+toe.
+
+## 3. Ground Check maken
+
+Maak onder de agent een leeg GameObject met de naam:
+
+`GroundCheck`
+
+Plaats deze onderaan de agent, ter hoogte van zijn voeten.
+
+Dit object wordt gebruikt om te controleren of de agent de grond raakt. De `GroundCheck` wordt later gekoppeld aan het `JumperAgent`-script.
+
+Maak voor de grond eventueel een aparte Layer, bijvoorbeeld:
+
+`Ground`
+
+Deze Layer wordt gebruikt door de `groundLayer` van de agent.
+
+## 4. Obstacle maken
+
+Maak een GameObject voor het obstakel. Dit kan bijvoorbeeld een Cube zijn.
+
+Voeg aan het obstakel een Collider toe en maak er vervolgens een prefab van:
+
+`ObstaclePrefab`
+
+Maak de tag:
+
+`Obstacle`
+
+en geef deze tag aan het obstakel.
+
+De tag is nodig zodat de agent kan herkennen dat hij een obstakel heeft geraakt.
+
+## 5. ObstacleSpawner maken
+
+Maak in de scene een leeg GameObject met de naam:
+
+`ObstacleSpawner`
+
+Plaats de spawner vóór de agent, op de plaats waar de obstakels moeten verschijnen.
+
+Maak vervolgens het script:
+
+`ObstacleSpawner.cs`
+
+In dit script worden onder andere de volgende onderdelen bijgehouden:
+
+* het `ObstaclePrefab`;
+* de `spawnInterval`;
+* de snelheid van de obstakels;
+* een lijst met actieve obstakels.
+
+Maak in het script een methode:
+
+`SpawnObstacle()`
+
+Deze methode maakt een nieuw obstakel aan en voegt het toe aan de lijst met actieve obstakels.
+
+Maak ook een methode:
+
+`RemoveObstacle()`
+
+Deze methode verwijdert een obstakel uit de lijst wanneer het obstakel niet meer actief is.
+
+Maak daarnaast een methode:
+
+`ResetEpisodeSpawner()`
+
+Deze methode wordt aan het begin van iedere episode uitgevoerd. Hierbij worden alle actieve obstakels verwijderd en wordt een nieuwe willekeurige snelheid voor de obstakels gekozen.
+
+## 6. Obstacle-script maken
+
+Maak een nieuw C#-script met de naam:
+
+`Obstacle.cs`
+
+Zet dit script op het `ObstaclePrefab`.
+
+In dit script worden onder andere bijgehouden:
+
+* de snelheid van het obstakel;
+* de `ObstacleSpawner` waartoe het obstakel behoort.
+
+Het script zorgt ervoor dat het obstakel richting de agent beweegt.
+
+Wanneer het obstakel ver genoeg voorbij de agent is gegaan, kan het worden verwijderd.
+
+## 7. JumperAgent-script maken
+
+Maak een nieuw C#-script met de naam:
+
+`JumperAgent.cs`
+
+Zet dit script op de agent.
+
+In het script wordt eerst de Rigidbody van de agent opgehaald. Stel daarnaast het maximale aantal stappen per episode in op 2500:
+
+### OnEpisodeBegin
+
+Maak een `OnEpisodeBegin()`-methode.
+
+Hierin wordt de positie van de agent aan het begin van een nieuwe episode gereset.
+
+Roep daarnaast de methode `ResetEpisodeSpawner()` van de `ObstacleSpawner` aan. Hierdoor worden de oude obstakels verwijderd en wordt de snelheid voor de nieuwe episode opnieuw bepaald.
+
+### CollectObservations
+
+In `CollectObservations()` worden de observaties van de agent verzameld.
+
+In deze opdracht krijgt de agent informatie over:
+
+* of hij op de grond staat;
+* de verticale snelheid/positie van de agent;
+* de snelheid van de obstakels.
+
+De ray perception sensor zorgt daarnaast voor informatie over obstakels die zich voor de agent bevinden.
+
+### OnActionReceived
+
+In `OnActionReceived()` wordt de actie van de agent uitgevoerd.
+
+De agent heeft hierbij als belangrijkste actie:
+
+* `0` = niet springen;
+* `1` = springen.
+
+Wanneer de agent de actie om te springen uitvoert en hij op de grond staat, wordt een kracht omhoog toegepast.
+
+De agent krijgt daarnaast een kleine positieve reward voor iedere actie die hij overleeft:
+Hierdoor wordt de agent beloond voor het zo lang mogelijk vermijden van obstakels.
+
+### OnTriggerEnter
+
+Maak een `OnTriggerEnter()`-methode om te controleren of de agent een obstakel raakt.
+Wanneer de agent een obstakel raakt, krijgt hij een negatieve reward:
+Daarna wordt de episode beëindigd:
+
+## 8. Agent koppelen in de Inspector
+
+Selecteer de agent en koppel in de Inspector de benodigde onderdelen aan het `JumperAgent`-script:
+
+* `Ground Check` → sleep het `GroundCheck`-object hierin;
+* `Ground Layer` → selecteer de Layer van de grond;
+* `Spawner` → sleep het `ObstacleSpawner`-object hierin.
+
+Controleer ook of de agent een Rigidbody en Collider heeft.
+
+## 9. ObstacleSpawner instellen
+
+Selecteer het `ObstacleSpawner`-object.
+
+Koppel het `ObstaclePrefab` aan het veld `Obstacle Prefab`.
+
+Stel vervolgens de spawninstellingen in.
+De snelheid van de obstakels wordt tijdens een nieuwe episode willekeurig bepaald.
+
+## 10. Behavior Parameters instellen
+
+Selecteer de agent en open `Behavior Parameters`.
+
+De agent gebruikt een discrete actie om te bepalen of hij moet springen.
+
+De actie bestaat uit twee mogelijkheden:
+
+```text
+0 = niet springen
+1 = springen
+```
+
+Controleer dat de Behavior Parameters overeenkomen met de acties die in `JumperAgent.cs` worden gebruikt.
+
+## 11. Decision Requester instellen
+
+Voeg een `Decision Requester` toe aan de agent.
+
+De Decision Requester zorgt ervoor dat de agent regelmatig een nieuwe beslissing neemt.
+
+Stel de frequentie in op een waarde die past bij de snelheid van de obstakels. De agent moet voldoende vaak een beslissing kunnen nemen om op tijd te reageren op een naderend obstakel.
+
+## 12. Heuristic toevoegen
+
+Een `Heuristic()`-methode is optioneel, maar handig om de werking van de agent eerst zelf te testen.
+
+In deze opdracht kan bijvoorbeeld de spatiebalk worden gebruikt om de agent te laten springen.
+Wanneer je op de spatiebalk drukt, moet de agent springen.
+Hiermee kun je controleren of de Rigidbody, Ground Check en springactie correct werken voordat je begint met trainen.
+
+## 13. Config toevoegen
+
+Voeg aan het project de yaml config bestand toe met de juiste parameters en gebruik dezelfde naam die je in je behaviour parameters hebt ingegeven.
+
+## 14. Training starten
+
+Wanneer de volledige omgeving werkt, kan de agent worden getraind.
+
+Start de training met het ML-Agents trainingscommando en start daarna de Unity-scene.
+
+Tijdens de training leert de agent op basis van de observaties en rewards wanneer hij moet springen.
+
+## 15. Getraind model testen
+
+Wanneer de training is afgerond, koppel je het getrainde model aan de `Behavior Parameters` van de agent.
+
+Start vervolgens de scene.
+
+De agent moet nu zelfstandig:
+
+1. wachten totdat een obstakel nadert;
+2. het obstakel detecteren;
+3. op het juiste moment springen;
+4. over het obstakel springen;
+5. landen;
+6. opnieuw wachten op het volgende obstakel.
+
+Hiermee is de Jumper Agent klaar.
